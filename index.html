@@ -48,8 +48,8 @@
       font-family: inherit;
     }
     textarea:focus { outline: none; border-color: #2196F3; }
+    .btn-row { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
     button {
-      margin-top: 12px;
       padding: 10px 28px;
       font-size: 1rem;
       background: #2196F3;
@@ -59,23 +59,25 @@
       cursor: pointer;
     }
     button:hover { background: #1976D2; }
+    button:disabled { background: #aaa; cursor: default; }
+    #status { font-size: 0.9rem; color: #888; }
     #output {
       font-size: 1.4rem;
-      line-height: 2.2;
+      line-height: 2.8;
       min-height: 60px;
-      font-family: "Noto Serif CJK SC", "Source Han Serif CN", serif;
     }
     .char-group {
       display: inline-block;
       text-align: center;
-      margin: 0 3px;
+      margin: 0 2px;
       vertical-align: bottom;
     }
     .pinyin {
       display: block;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-family: Arial, sans-serif;
-      line-height: 1.4;
+      line-height: 1.3;
+      letter-spacing: 0;
     }
     .hanzi {
       display: block;
@@ -84,7 +86,9 @@
     }
     .other {
       color: #333;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
+      vertical-align: bottom;
+      display: inline-block;
     }
   </style>
 </head>
@@ -99,115 +103,95 @@
       <span class="t0">■ Neutral – Gray</span>
     </div>
     <textarea id="input" placeholder="Paste Chinese characters here, e.g. 中国 现在 你好"></textarea>
-    <br>
-    <button onclick="convert()">Color Code</button>
+    <div class="btn-row">
+      <button id="btn" onclick="convert()">Color Code</button>
+      <span id="status"></span>
+    </div>
   </div>
 
-  <div class="card" id="output-card">
+  <div class="card">
     <div id="output"></div>
   </div>
 
-  <script src="pinyin-data.js"></script>
+  <!-- pinyin-pro: context-aware pinyin library, no data file needed -->
+  <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3/dist/index.js"></script>
   <script>
-    function getTone(char) {
-      if (!pinyinData[char]) return null;
-      // pinyinData stores: "zhong1" style or with tone number
-      const pinyin = pinyinData[char];
-      const match = pinyin.match(/[1-5]$/);
-      if (!match) return 0;
-      return parseInt(match[0]);
-    }
+    const toneClass = { 1: 't1', 2: 't2', 3: 't3', 4: 't4', 0: 't0' };
 
-    function toneClass(tone) {
-      if (tone === 1) return 't1';
-      if (tone === 2) return 't2';
-      if (tone === 3) return 't3';
-      if (tone === 4) return 't4';
-      return 't0';
-    }
-
-    // Convert tone number pinyin to diacritic pinyin for display
-    const toneMap = {
-      a: ['ā','á','ǎ','à','a'],
-      e: ['ē','é','ě','è','e'],
-      i: ['ī','í','ǐ','ì','i'],
-      o: ['ō','ó','ǒ','ò','o'],
-      u: ['ū','ú','ǔ','ù','u'],
-      ü: ['ǖ','ǘ','ǚ','ǜ','ü'],
-      v: ['ǖ','ǘ','ǚ','ǜ','ü'],
-    };
-
-    function formatPinyin(raw) {
-      // raw e.g. "zhong1", "guo2", "xian4", "de" (neutral)
-      const toneNum = parseInt(raw.slice(-1));
-      if (isNaN(toneNum)) return raw; // neutral tone, no diacritic
-      let base = raw.slice(0, -1).replace(/v/g, 'ü');
-
-      // Standard tone placement rules:
-      // 1. 'a' or 'e' always gets the mark
-      // 2. In 'ou', the 'o' gets the mark
-      // 3. Otherwise the last vowel gets the mark
-      const mark = (str, v, t) =>
-        str.slice(0, str.indexOf(v)) + toneMap[v][t - 1] + str.slice(str.indexOf(v) + v.length);
-
-      for (const v of ['a', 'e']) {
-        if (base.includes(v)) return mark(base, v, toneNum);
+    function getToneNum(pinyinStr) {
+      // pinyin-pro returns diacritic pinyin like "zhōng", "guó", "de"
+      const toneChars = {
+        'ā':1,'á':2,'ǎ':3,'à':4,
+        'ē':1,'é':2,'ě':3,'è':4,
+        'ī':1,'í':2,'ǐ':3,'ì':4,
+        'ō':1,'ó':2,'ǒ':3,'ò':4,
+        'ū':1,'ú':2,'ǔ':3,'ù':4,
+        'ǖ':1,'ǘ':2,'ǚ':3,'ǜ':4,
+      };
+      for (const ch of pinyinStr) {
+        if (toneChars[ch]) return toneChars[ch];
       }
-      if (base.includes('ou')) {
-        const i = base.indexOf('ou');
-        return base.slice(0, i) + toneMap['o'][toneNum - 1] + base.slice(i + 1);
-      }
-      // Last vowel
-      const vowels = 'aeiouü';
-      let lastIdx = -1, lastV = '';
-      for (let i = 0; i < base.length; i++) {
-        if (vowels.includes(base[i])) { lastIdx = i; lastV = base[i]; }
-      }
-      if (lastIdx !== -1)
-        return base.slice(0, lastIdx) + toneMap[lastV][toneNum - 1] + base.slice(lastIdx + 1);
-      return base;
-    }
-
-    function getPinyinDisplay(char) {
-      if (!pinyinData[char]) return null;
-      const raw = pinyinData[char];
-      return formatPinyin(raw);
+      return 0; // neutral
     }
 
     function convert() {
       const input = document.getElementById('input').value;
       const output = document.getElementById('output');
+      const status = document.getElementById('status');
+
       if (!input.trim()) { output.innerHTML = ''; return; }
 
+      if (typeof pinyinPro === 'undefined') {
+        status.textContent = 'Library still loading, please try again…';
+        return;
+      }
+
+      status.textContent = '';
+
+      // Get per-character pinyin from pinyin-pro
+      const chars = Array.from(input);
+      let pinyinList;
+      try {
+        // pinyin() with type:'array' returns one entry per character
+        pinyinList = pinyinPro.pinyin(input, { toneType: 'symbol', type: 'array', nonZh: 'consecutive' });
+      } catch(e) {
+        status.textContent = 'Error: ' + e.message;
+        return;
+      }
+
       let html = '';
-      for (const char of input) {
-        const code = char.charCodeAt(0);
+      let pIdx = 0;
+
+      for (const char of chars) {
+        const code = char.codePointAt(0);
         const isCJK = (code >= 0x4E00 && code <= 0x9FFF) ||
                       (code >= 0x3400 && code <= 0x4DBF) ||
+                      (code >= 0xF900 && code <= 0xFAFF) ||
                       (code >= 0x20000 && code <= 0x2A6DF);
 
         if (isCJK) {
-          const tone = getTone(char);
-          const cls = tone !== null ? toneClass(tone) : 't0';
-          const pinyinDisplay = getPinyinDisplay(char) || '';
-          html += `<span class="char-group ${cls}">
-            <span class="pinyin">${pinyinDisplay}</span>
-            <span class="hanzi">${char}</span>
-          </span>`;
+          const py = pinyinList[pIdx] || '';
+          const tone = getToneNum(py);
+          const cls = toneClass[tone] || 't0';
+          html += `<span class="char-group ${cls}"><span class="pinyin">${py}</span><span class="hanzi">${char}</span></span>`;
+          pIdx++;
         } else if (char === '\n') {
-          html += '<br>';
+          html += '<br style="line-height:1">';
+          if (pinyinList[pIdx] === '\n' || pinyinList[pIdx] === '') pIdx++;
         } else if (char === ' ') {
-          html += '<span class="other">&nbsp;</span>';
+          html += '<span class="other">&thinsp;&thinsp;</span>';
+          if (pinyinList[pIdx] === ' ' || pinyinList[pIdx] === '') pIdx++;
         } else {
-          html += `<span class="other">${char}</span>`;
+          html += `<span class="other">${char.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>`;
+          pIdx++;
         }
       }
+
       output.innerHTML = html;
     }
 
-    // Allow Enter in textarea to not submit, but Ctrl+Enter to convert
     document.getElementById('input').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && e.ctrlKey) convert();
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) convert();
     });
   </script>
 </body>
