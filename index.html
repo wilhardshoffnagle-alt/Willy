@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chinese Tone Color Coder</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 30px;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 1.6rem;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    .legend {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      font-size: 0.92rem;
+    }
+    .legend span { font-weight: 600; }
+    .t1 { color: #2196F3; }   /* Tone 1 - Blue   */
+    .t2 { color: #4CAF50; }   /* Tone 2 - Green  */
+    .t3 { color: #9C27B0; }   /* Tone 3 - Purple */
+    .t4 { color: #F44336; }   /* Tone 4 - Red    */
+    .t0 { color: #888888; }   /* Neutral - Gray  */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      font-size: 1.2rem;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    textarea:focus { outline: none; border-color: #2196F3; }
+    button {
+      margin-top: 12px;
+      padding: 10px 28px;
+      font-size: 1rem;
+      background: #2196F3;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background: #1976D2; }
+    #output {
+      font-size: 1.4rem;
+      line-height: 2.2;
+      min-height: 60px;
+      font-family: "Noto Serif CJK SC", "Source Han Serif CN", serif;
+    }
+    .char-group {
+      display: inline-block;
+      text-align: center;
+      margin: 0 3px;
+      vertical-align: bottom;
+    }
+    .pinyin {
+      display: block;
+      font-size: 0.7rem;
+      font-family: Arial, sans-serif;
+      line-height: 1.4;
+    }
+    .hanzi {
+      display: block;
+      font-size: 1.5rem;
+      line-height: 1.2;
+    }
+    .other {
+      color: #333;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Chinese Tone Color Coder</h1>
+    <div class="legend">
+      <span class="t1">■ Tone 1 (ā) – Blue</span>
+      <span class="t2">■ Tone 2 (á) – Green</span>
+      <span class="t3">■ Tone 3 (ǎ) – Purple</span>
+      <span class="t4">■ Tone 4 (à) – Red</span>
+      <span class="t0">■ Neutral – Gray</span>
+    </div>
+    <textarea id="input" placeholder="Paste Chinese characters here, e.g. 中国 现在 你好"></textarea>
+    <br>
+    <button onclick="convert()">Color Code</button>
+  </div>
+
+  <div class="card" id="output-card">
+    <div id="output"></div>
+  </div>
+
+  <script src="pinyin-data.js"></script>
+  <script>
+    function getTone(char) {
+      if (!pinyinData[char]) return null;
+      // pinyinData stores: "zhong1" style or with tone number
+      const pinyin = pinyinData[char];
+      const match = pinyin.match(/[1-5]$/);
+      if (!match) return 0;
+      return parseInt(match[0]);
+    }
+
+    function toneClass(tone) {
+      if (tone === 1) return 't1';
+      if (tone === 2) return 't2';
+      if (tone === 3) return 't3';
+      if (tone === 4) return 't4';
+      return 't0';
+    }
+
+    // Convert tone number pinyin to diacritic pinyin for display
+    const toneMap = {
+      a: ['ā','á','ǎ','à','a'],
+      e: ['ē','é','ě','è','e'],
+      i: ['ī','í','ǐ','ì','i'],
+      o: ['ō','ó','ǒ','ò','o'],
+      u: ['ū','ú','ǔ','ù','u'],
+      ü: ['ǖ','ǘ','ǚ','ǜ','ü'],
+      v: ['ǖ','ǘ','ǚ','ǜ','ü'],
+    };
+
+    function formatPinyin(raw) {
+      // raw e.g. "zhong1", "guo2", "xian4", "de" (neutral)
+      const toneNum = parseInt(raw.slice(-1));
+      if (isNaN(toneNum)) return raw; // neutral tone, no diacritic
+      let base = raw.slice(0, -1).replace(/v/g, 'ü');
+
+      // Standard tone placement rules:
+      // 1. 'a' or 'e' always gets the mark
+      // 2. In 'ou', the 'o' gets the mark
+      // 3. Otherwise the last vowel gets the mark
+      const mark = (str, v, t) =>
+        str.slice(0, str.indexOf(v)) + toneMap[v][t - 1] + str.slice(str.indexOf(v) + v.length);
+
+      for (const v of ['a', 'e']) {
+        if (base.includes(v)) return mark(base, v, toneNum);
+      }
+      if (base.includes('ou')) {
+        const i = base.indexOf('ou');
+        return base.slice(0, i) + toneMap['o'][toneNum - 1] + base.slice(i + 1);
+      }
+      // Last vowel
+      const vowels = 'aeiouü';
+      let lastIdx = -1, lastV = '';
+      for (let i = 0; i < base.length; i++) {
+        if (vowels.includes(base[i])) { lastIdx = i; lastV = base[i]; }
+      }
+      if (lastIdx !== -1)
+        return base.slice(0, lastIdx) + toneMap[lastV][toneNum - 1] + base.slice(lastIdx + 1);
+      return base;
+    }
+
+    function getPinyinDisplay(char) {
+      if (!pinyinData[char]) return null;
+      const raw = pinyinData[char];
+      return formatPinyin(raw);
+    }
+
+    function convert() {
+      const input = document.getElementById('input').value;
+      const output = document.getElementById('output');
+      if (!input.trim()) { output.innerHTML = ''; return; }
+
+      let html = '';
+      for (const char of input) {
+        const code = char.charCodeAt(0);
+        const isCJK = (code >= 0x4E00 && code <= 0x9FFF) ||
+                      (code >= 0x3400 && code <= 0x4DBF) ||
+                      (code >= 0x20000 && code <= 0x2A6DF);
+
+        if (isCJK) {
+          const tone = getTone(char);
+          const cls = tone !== null ? toneClass(tone) : 't0';
+          const pinyinDisplay = getPinyinDisplay(char) || '';
+          html += `<span class="char-group ${cls}">
+            <span class="pinyin">${pinyinDisplay}</span>
+            <span class="hanzi">${char}</span>
+          </span>`;
+        } else if (char === '\n') {
+          html += '<br>';
+        } else if (char === ' ') {
+          html += '<span class="other">&nbsp;</span>';
+        } else {
+          html += `<span class="other">${char}</span>`;
+        }
+      }
+      output.innerHTML = html;
+    }
+
+    // Allow Enter in textarea to not submit, but Ctrl+Enter to convert
+    document.getElementById('input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.ctrlKey) convert();
+    });
+  </script>
+</body>
+</html>
