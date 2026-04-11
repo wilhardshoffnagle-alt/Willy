@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realistic Typing Simulator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      color: #a78bfa;
+      letter-spacing: 1px;
+    }
+
+    p.subtitle {
+      color: #888;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #a0a0c0;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    textarea, .output-box {
+      width: 100%;
+      min-height: 140px;
+      background: #0f0f1a;
+      border: 1px solid #2e2e4e;
+      border-radius: 10px;
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      color: #e0e0e0;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.6;
+    }
+
+    textarea:focus {
+      border-color: #a78bfa;
+    }
+
+    .output-box {
+      min-height: 160px;
+      position: relative;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.1em;
+      background: #a78bfa;
+      margin-left: 1px;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      padding: 10px 26px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    #startBtn {
+      background: #a78bfa;
+      color: #0f0f1a;
+    }
+
+    #stopBtn {
+      background: #f87171;
+      color: #0f0f1a;
+      display: none;
+    }
+
+    #clearBtn {
+      background: #2e2e4e;
+      color: #c0c0d8;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: #0f0f1a;
+      border: 1px solid #2e2e4e;
+      border-radius: 10px;
+      padding: 16px 20px;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .slider-row label {
+      margin: 0;
+      min-width: 130px;
+      font-size: 0.82rem;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: #a78bfa;
+      cursor: pointer;
+    }
+
+    .slider-value {
+      min-width: 44px;
+      text-align: right;
+      font-size: 0.85rem;
+      color: #a78bfa;
+      font-family: 'Courier New', monospace;
+    }
+
+    .status {
+      font-size: 0.82rem;
+      color: #666;
+      margin-top: 4px;
+      min-height: 18px;
+    }
+
+    .status.active {
+      color: #86efac;
+    }
+
+    .status.done {
+      color: #60a5fa;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Realistic Typing Simulator</h1>
+  <p class="subtitle">Paste your text below and watch it get "typed" with human-like mistakes.</p>
+
+  <div class="container">
+
+    <div>
+      <label for="inputText">Paste your text here</label>
+      <textarea id="inputText" placeholder="Paste or type something here, then click Start..."></textarea>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-row">
+        <label for="speedSlider">Typing speed</label>
+        <input type="range" id="speedSlider" min="1" max="10" value="5" />
+        <span class="slider-value" id="speedVal">5</span>
+      </div>
+      <div class="slider-row">
+        <label for="mistakeSlider">Mistake rate</label>
+        <input type="range" id="mistakeSlider" min="0" max="10" value="3" />
+        <span class="slider-value" id="mistakeVal">3</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn">Start Typing</button>
+      <button id="stopBtn">Stop</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+
+    <div>
+      <label>Output</label>
+      <div class="output-box" id="output"><span class="cursor"></span></div>
+      <div class="status" id="status"></div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ── Neighbouring keys on a QWERTY layout (for realistic typos) ── */
+    const neighbours = {
+      a:['q','w','s','z'], b:['v','g','h','n'], c:['x','d','f','v'],
+      d:['s','e','r','f','c','x'], e:['w','r','d','s'], f:['d','r','t','g','v','c'],
+      g:['f','t','y','h','b','v'], h:['g','y','u','j','n','b'], i:['u','o','k','j'],
+      j:['h','u','i','k','n','m'], k:['j','i','o','l','m'], l:['k','o','p'],
+      m:['n','j','k'], n:['b','h','j','m'], o:['i','p','l','k'],
+      p:['o','l'], q:['w','a'], r:['e','t','f','d'], s:['a','w','e','d','x','z'],
+      t:['r','y','g','f'], u:['y','i','j','h'], v:['c','f','g','b'],
+      w:['q','e','s','a'], x:['z','s','d','c'], y:['t','u','h','g'],
+      z:['a','s','x'],
+      '0':['9','p','-'], '1':['2','q'], '2':['1','3','w','q'],
+      '3':['2','4','e','w'], '4':['3','5','r','e'], '5':['4','6','t','r'],
+      '6':['5','7','y','t'], '7':['6','8','u','y'], '8':['7','9','i','u'],
+      '9':['8','0','o','i'],
+      ' ':['v','b','n','m','c'],
+    };
+
+    function nearbyKey(ch) {
+      const lower = ch.toLowerCase();
+      const pool = neighbours[lower];
+      if (!pool) return ch;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      return ch === ch.toUpperCase() && ch !== ch.toLowerCase()
+        ? pick.toUpperCase()
+        : pick;
+    }
+
+    /* ── State ── */
+    let timeouts = [];
+    let running = false;
+
+    /* ── DOM refs ── */
+    const inputEl   = document.getElementById('inputText');
+    const outputEl  = document.getElementById('output');
+    const startBtn  = document.getElementById('startBtn');
+    const stopBtn   = document.getElementById('stopBtn');
+    const clearBtn  = document.getElementById('clearBtn');
+    const statusEl  = document.getElementById('status');
+    const speedSlider   = document.getElementById('speedSlider');
+    const mistakeSlider = document.getElementById('mistakeSlider');
+    const speedVal   = document.getElementById('speedVal');
+    const mistakeVal = document.getElementById('mistakeVal');
+
+    speedSlider.addEventListener('input',   () => speedVal.textContent   = speedSlider.value);
+    mistakeSlider.addEventListener('input', () => mistakeVal.textContent = mistakeSlider.value);
+
+    /* ── Timing helpers ── */
+    // speed 1 → ~300ms/char, speed 10 → ~30ms/char
+    function baseDelay() {
+      const s = parseInt(speedSlider.value);
+      const ms = Math.round(330 - s * 30);       // 300 → 30
+      const jitter = Math.random() * ms * 0.6;   // ±30% jitter
+      return ms + jitter - jitter / 2;
+    }
+
+    function schedule(fn, delay) {
+      const id = setTimeout(fn, delay);
+      timeouts.push(id);
+      return id;
+    }
+
+    /* ── Output helpers ── */
+    let typed = '';   // current displayed text (minus cursor span)
+
+    function render() {
+      outputEl.innerHTML = escapeHtml(typed) + '<span class="cursor"></span>';
+    }
+
+    function escapeHtml(s) {
+      return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+    }
+
+    /* ── Main simulation ── */
+    function startTyping() {
+      const text = inputEl.value;
+      if (!text.trim()) return;
+
+      // Reset
+      typed = '';
+      render();
+      timeouts.forEach(clearTimeout);
+      timeouts = [];
+      running = true;
+
+      startBtn.disabled = true;
+      stopBtn.style.display = '';
+      inputEl.disabled = true;
+      statusEl.textContent = 'Typing…';
+      statusEl.className = 'status active';
+
+      const mistakeRate = parseInt(mistakeSlider.value) / 100;  // 0–0.10
+
+      let t = 0;       // accumulated delay (ms)
+      let i = 0;       // index into target text
+
+      function typeNext() {
+        if (!running || i >= text.length) {
+          if (running) finish();
+          return;
+        }
+
+        const ch = text[i];
+
+        // ── Should we make a mistake here? ──
+        // Don't make mistakes on newlines/spaces as often
+        const mistakeChance = (ch === '\n' || ch === ' ')
+          ? mistakeRate * 0.2
+          : mistakeRate;
+
+        if (Math.random() < mistakeChance) {
+          // Decide how many wrong chars to type (1–3)
+          const wrongCount = 1 + Math.floor(Math.random() * 2);
+
+          // Build sequence: type wrong chars, then backspace each, then retype correct
+          let localT = 0;
+
+          for (let w = 0; w < wrongCount; w++) {
+            const wrong = nearbyKey(ch);
+            const wDelay = baseDelay();
+            const wIdx = w;  // capture
+            schedule(() => {
+              typed += wrong;
+              render();
+            }, t + localT + wDelay);
+            localT += wDelay;
+
+            // Sometimes pause before catching the mistake (feels natural)
+            if (Math.random() < 0.4) {
+              localT += 150 + Math.random() * 400;
+            }
+          }
+
+          // Backspace all wrong chars
+          for (let b = 0; b < wrongCount; b++) {
+            const bDelay = baseDelay() * 0.7;  // backspacing is slightly faster
+            schedule(() => {
+              typed = typed.slice(0, -1);
+              render();
+            }, t + localT + bDelay);
+            localT += bDelay;
+          }
+
+          // Brief hesitation before retyping correctly
+          localT += 80 + Math.random() * 200;
+
+          // Type the correct character
+          const correctDelay = baseDelay();
+          schedule(() => {
+            typed += ch;
+            render();
+            i++;
+            typeNext();
+          }, t + localT + correctDelay);
+
+          t += localT + correctDelay;
+
+        } else {
+          // Normal keystroke
+          const delay = baseDelay();
+
+          // Occasionally add a thinking pause (between words or sentences)
+          let extra = 0;
+          if (ch === ' ' && Math.random() < 0.08) extra = 300 + Math.random() * 600;
+          if ((ch === '.' || ch === '!' || ch === '?') && Math.random() < 0.25)
+            extra = 400 + Math.random() * 800;
+
+          schedule(() => {
+            typed += ch;
+            render();
+            i++;
+            typeNext();
+          }, t + delay + extra);
+
+          t += delay + extra;
+        }
+      }
+
+      typeNext();
+    }
+
+    function finish() {
+      running = false;
+      startBtn.disabled = false;
+      stopBtn.style.display = 'none';
+      inputEl.disabled = false;
+      statusEl.textContent = 'Done!';
+      statusEl.className = 'status done';
+    }
+
+    function stop() {
+      running = false;
+      timeouts.forEach(clearTimeout);
+      timeouts = [];
+      startBtn.disabled = false;
+      stopBtn.style.display = 'none';
+      inputEl.disabled = false;
+      statusEl.textContent = 'Stopped.';
+      statusEl.className = 'status';
+    }
+
+    function clear() {
+      stop();
+      typed = '';
+      render();
+      inputEl.value = '';
+      statusEl.textContent = '';
+      statusEl.className = 'status';
+    }
+
+    startBtn.addEventListener('click', startTyping);
+    stopBtn.addEventListener('click', stop);
+    clearBtn.addEventListener('click', clear);
+  </script>
+</body>
+</html>
