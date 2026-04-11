@@ -6,191 +6,109 @@
   <title>Chinese Tone Color Coder</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 30px;
-      min-height: 100vh;
-    }
-    h1 {
-      font-size: 1.6rem;
-      color: #333;
-      margin-bottom: 6px;
-    }
-    .legend {
-      display: flex;
-      gap: 18px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      font-size: 0.92rem;
-    }
-    .legend span { font-weight: 600; }
-    .t1 { color: #2196F3; }   /* Tone 1 - Blue   */
-    .t2 { color: #4CAF50; }   /* Tone 2 - Green  */
-    .t3 { color: #9C27B0; }   /* Tone 3 - Purple */
-    .t4 { color: #F44336; }   /* Tone 4 - Red    */
-    .t0 { color: #888888; }   /* Neutral - Gray  */
-    .card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
-    }
-    textarea {
-      width: 100%;
-      height: 100px;
-      font-size: 1.2rem;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      resize: vertical;
-      font-family: inherit;
-    }
+    body { font-family: "Segoe UI", Arial, sans-serif; background: #f5f5f5; padding: 20px; min-height: 100vh; }
+    h1 { font-size: 1.5rem; color: #333; margin-bottom: 10px; }
+    .legend { display: flex; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; font-size: 0.9rem; font-weight: 600; }
+    .t1 { color: #2196F3; }
+    .t2 { color: #4CAF50; }
+    .t3 { color: #9C27B0; }
+    .t4 { color: #F44336; }
+    .t0 { color: #888888; }
+    .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 16px; }
+    textarea { width: 100%; height: 100px; font-size: 1.1rem; padding: 10px; border: 1px solid #ddd; border-radius: 6px; resize: vertical; font-family: inherit; }
     textarea:focus { outline: none; border-color: #2196F3; }
-    .btn-row { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
-    button {
-      padding: 10px 28px;
-      font-size: 1rem;
-      background: #2196F3;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+    button { margin-top: 10px; padding: 12px 32px; font-size: 1rem; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; width: 100%; }
     button:hover { background: #1976D2; }
-    button:disabled { background: #aaa; cursor: default; }
-    #status { font-size: 0.9rem; color: #888; }
-    #output {
-      font-size: 1.4rem;
-      line-height: 2.8;
-      min-height: 60px;
-    }
-    .char-group {
-      display: inline-block;
-      text-align: center;
-      margin: 0 2px;
-      vertical-align: bottom;
-    }
-    .pinyin {
-      display: block;
-      font-size: 0.65rem;
-      font-family: Arial, sans-serif;
-      line-height: 1.3;
-      letter-spacing: 0;
-    }
-    .hanzi {
-      display: block;
-      font-size: 1.5rem;
-      line-height: 1.2;
-    }
-    .other {
-      color: #333;
-      font-size: 1.3rem;
-      vertical-align: bottom;
-      display: inline-block;
-    }
+    #status { font-size: 0.85rem; color: #888; margin-top: 6px; min-height: 18px; }
+    #output { font-size: 1.3rem; line-height: 3; min-height: 60px; }
+    .char-group { display: inline-block; text-align: center; margin: 0 2px; vertical-align: bottom; }
+    .pinyin { display: block; font-size: 0.65rem; font-family: Arial, sans-serif; line-height: 1.3; }
+    .hanzi { display: block; font-size: 1.4rem; line-height: 1.2; }
+    .other { color: #333; font-size: 1.1rem; vertical-align: bottom; display: inline-block; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Chinese Tone Color Coder</h1>
     <div class="legend">
-      <span class="t1">■ Tone 1 (ā) – Blue</span>
-      <span class="t2">■ Tone 2 (á) – Green</span>
-      <span class="t3">■ Tone 3 (ǎ) – Purple</span>
-      <span class="t4">■ Tone 4 (à) – Red</span>
-      <span class="t0">■ Neutral – Gray</span>
+      <span class="t1">&#9632; Tone 1 (ā)</span>
+      <span class="t2">&#9632; Tone 2 (á)</span>
+      <span class="t3">&#9632; Tone 3 (ǎ)</span>
+      <span class="t4">&#9632; Tone 4 (à)</span>
+      <span class="t0">&#9632; Neutral</span>
     </div>
-    <textarea id="input" placeholder="Paste Chinese characters here, e.g. 中国 现在 你好"></textarea>
-    <div class="btn-row">
-      <button id="btn" onclick="convert()">Color Code</button>
-      <span id="status"></span>
-    </div>
+    <textarea id="input" placeholder="Paste Chinese characters here…"></textarea>
+    <button onclick="convert()">Color Code</button>
+    <div id="status">Loading pinyin library…</div>
   </div>
-
   <div class="card">
     <div id="output"></div>
   </div>
 
-  <!-- pinyin-pro: context-aware pinyin library, no data file needed -->
   <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3/dist/index.js"></script>
   <script>
-    const toneClass = { 1: 't1', 2: 't2', 3: 't3', 4: 't4', 0: 't0' };
+    const status = document.getElementById('status');
 
-    function getToneNum(pinyinStr) {
-      // pinyin-pro returns diacritic pinyin like "zhōng", "guó", "de"
-      const toneChars = {
-        'ā':1,'á':2,'ǎ':3,'à':4,
-        'ē':1,'é':2,'ě':3,'è':4,
-        'ī':1,'í':2,'ǐ':3,'ì':4,
-        'ō':1,'ó':2,'ǒ':3,'ò':4,
-        'ū':1,'ú':2,'ǔ':3,'ù':4,
-        'ǖ':1,'ǘ':2,'ǚ':3,'ǜ':4,
-      };
-      for (const ch of pinyinStr) {
-        if (toneChars[ch]) return toneChars[ch];
-      }
-      return 0; // neutral
+    function ready() {
+      return typeof pinyinPro !== 'undefined' && typeof pinyinPro.pinyin === 'function';
     }
 
+    function waitReady(cb, tries) {
+      if (ready()) { status.textContent = 'Ready'; cb(); return; }
+      if (tries <= 0) { status.textContent = 'Failed to load library. Check internet connection.'; return; }
+      setTimeout(() => waitReady(cb, tries - 1), 300);
+    }
+
+    waitReady(() => {}, 30);
+
+    const diacritics = {
+      'ā':1,'á':2,'ǎ':3,'à':4,
+      'ē':1,'é':2,'ě':3,'è':4,
+      'ī':1,'í':2,'ǐ':3,'ì':4,
+      'ō':1,'ó':2,'ǒ':3,'ò':4,
+      'ū':1,'ú':2,'ǔ':3,'ù':4,
+      'ǖ':1,'ǘ':2,'ǚ':3,'ǜ':4,
+    };
+
+    function getTone(py) {
+      for (const ch of py) if (diacritics[ch]) return diacritics[ch];
+      return 0;
+    }
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
     function convert() {
+      if (!ready()) { status.textContent = 'Still loading, please wait…'; return; }
       const input = document.getElementById('input').value;
       const output = document.getElementById('output');
-      const status = document.getElementById('status');
-
       if (!input.trim()) { output.innerHTML = ''; return; }
 
-      if (typeof pinyinPro === 'undefined') {
-        status.textContent = 'Library still loading, please try again…';
-        return;
-      }
-
-      status.textContent = '';
-
-      // Get per-character pinyin from pinyin-pro
       const chars = Array.from(input);
-      let pinyinList;
-      try {
-        // pinyin() with type:'array' returns one entry per character
-        pinyinList = pinyinPro.pinyin(input, { toneType: 'symbol', type: 'array', nonZh: 'consecutive' });
-      } catch(e) {
-        status.textContent = 'Error: ' + e.message;
-        return;
-      }
+      const pyList = pinyinPro.pinyin(input, { toneType: 'symbol', type: 'array', nonZh: 'consecutive' });
 
-      let html = '';
-      let pIdx = 0;
-
-      for (const char of chars) {
-        const code = char.codePointAt(0);
+      let html = '', pi = 0;
+      for (const ch of chars) {
+        const code = ch.codePointAt(0);
         const isCJK = (code >= 0x4E00 && code <= 0x9FFF) ||
                       (code >= 0x3400 && code <= 0x4DBF) ||
                       (code >= 0xF900 && code <= 0xFAFF) ||
                       (code >= 0x20000 && code <= 0x2A6DF);
-
         if (isCJK) {
-          const py = pinyinList[pIdx] || '';
-          const tone = getToneNum(py);
-          const cls = toneClass[tone] || 't0';
-          html += `<span class="char-group ${cls}"><span class="pinyin">${py}</span><span class="hanzi">${char}</span></span>`;
-          pIdx++;
-        } else if (char === '\n') {
-          html += '<br style="line-height:1">';
-          if (pinyinList[pIdx] === '\n' || pinyinList[pIdx] === '') pIdx++;
-        } else if (char === ' ') {
-          html += '<span class="other">&thinsp;&thinsp;</span>';
-          if (pinyinList[pIdx] === ' ' || pinyinList[pIdx] === '') pIdx++;
+          const py = pyList[pi++] || '';
+          const t = getTone(py);
+          const cls = t ? 't' + t : 't0';
+          html += `<span class="char-group ${cls}"><span class="pinyin">${esc(py)}</span><span class="hanzi">${esc(ch)}</span></span>`;
+        } else if (ch === '\n') {
+          html += '<br>'; pi++;
         } else {
-          html += `<span class="other">${char.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>`;
-          pIdx++;
+          html += `<span class="other">${ch === ' ' ? '&nbsp;' : esc(ch)}</span>`; pi++;
         }
       }
-
       output.innerHTML = html;
+      status.textContent = '';
     }
 
-    document.getElementById('input').addEventListener('keydown', function(e) {
+    document.getElementById('input').addEventListener('keydown', e => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) convert();
     });
   </script>
