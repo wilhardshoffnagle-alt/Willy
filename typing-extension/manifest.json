@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Realistic Typing Simulator",
+  "version": "1.0",
+  "description": "Types pasted text into Google Docs with realistic human-like mistakes.",
+  "permissions": ["activeTab"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Realistic Typing Simulator"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://docs.google.com/*"],
+      "js": ["content.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ]
+}
