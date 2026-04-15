@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import express from 'express';
 import Anthropic from '@anthropic-ai/sdk';
 import { fileURLToPath } from 'url';
@@ -7,18 +6,17 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// ============================================================
+// PUT YOUR ANTHROPIC API KEY HERE
+// Get one at: https://console.anthropic.com → API Keys
+// ============================================================
+const API_KEY = 'YOUR_API_KEY_HERE';
+
 const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Initialize Anthropic client (reads ANTHROPIC_API_KEY from environment)
-let client;
-try {
-  client = new Anthropic();
-} catch (e) {
-  console.error('Failed to initialize Anthropic client:', e.message);
-  console.error('Make sure ANTHROPIC_API_KEY is set in your environment.');
-}
+const client = new Anthropic({ apiKey: API_KEY });
 
 // ============================================================
 // CUSTOMIZE YOUR QUEST CATEGORIES HERE
@@ -47,9 +45,9 @@ const QUEST_CATEGORIES = [
 ];
 
 app.post('/api/recommend', async (req, res) => {
-  if (!client) {
+  if (!API_KEY || API_KEY === 'YOUR_API_KEY_HERE') {
     return res.status(500).json({
-      error: 'Server not configured. Set the ANTHROPIC_API_KEY environment variable and restart.',
+      error: 'No API key set. Open server.js and paste your key into the API_KEY variable at the top.',
     });
   }
 
@@ -115,7 +113,7 @@ Give us 3 perfect side quests!`;
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  const keyStatus = process.env.ANTHROPIC_API_KEY ? '✓ Set' : '✗ Missing (set ANTHROPIC_API_KEY)';
+  const keyStatus = API_KEY && API_KEY !== 'YOUR_API_KEY_HERE' ? '✓ Set' : '✗ Missing — open server.js and add your key';
   console.log(`\n⚔️  Side Quest Generator`);
   console.log(`   URL:     http://localhost:${PORT}/side-quests.html`);
   console.log(`   API key: ${keyStatus}\n`);
