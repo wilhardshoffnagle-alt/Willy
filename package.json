@@ -1,0 +1,13 @@
+{
+  "name": "willy",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Side Quest Generator - find fun things to do with friends",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.51.0",
+    "express": "^4.19.2"
+  }
+}
