@@ -10,13 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Initialize Anthropic client (reads ANTHROPIC_API_KEY from environment)
-let client;
-try {
-  client = new Anthropic();
-} catch (e) {
-  console.error('Failed to initialize Anthropic client:', e.message);
-  console.error('Make sure ANTHROPIC_API_KEY is set in your environment.');
+const client = new Anthropic({ apiKey: 'YOUR_KEY_HERE' });
 }
 
 // ============================================================
