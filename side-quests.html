@@ -3,593 +3,457 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Side Quest Generator ⚔️</title>
+  <title>What should we do?</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0c0b1a;
-      --surface: rgba(255,255,255,0.045);
-      --surface-hover: rgba(255,255,255,0.08);
-      --border: rgba(255,255,255,0.09);
-      --border-hover: rgba(255,255,255,0.18);
-      --gold: #f6c90e;
-      --gold-dim: rgba(246,201,14,0.15);
-      --purple: #7c3aed;
-      --purple-glow: rgba(124,58,237,0.35);
-      --purple-light: #a78bfa;
-      --text: #eeeeff;
-      --text-muted: rgba(238,238,255,0.45);
-      --card-shadow: 0 12px 40px rgba(0,0,0,0.5);
-      --radius: 18px;
+      --ink: #1a1712;
+      --paper: #fff8ee;
+      --paper-2: #fdecd0;
+      --accent: #ff5436;
+      --accent-soft: #ffe4dc;
+      --muted: #8a7f70;
+      --line: #e6d8be;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html, body { background: var(--paper); color: var(--ink); }
+
     body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
       min-height: 100vh;
-      background-image:
-        radial-gradient(ellipse 70% 50% at 10% 10%, rgba(124,58,237,0.18) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 90% 90%, rgba(79,70,229,0.12) 0%, transparent 60%);
-    }
-
-    .container {
-      max-width: 660px;
-      margin: 0 auto;
-      padding: 52px 20px 100px;
-    }
-
-    /* ── Header ── */
-    .header {
-      text-align: center;
-      margin-bottom: 44px;
-    }
-    .badge {
-      display: inline-block;
-      background: var(--gold-dim);
-      border: 1px solid rgba(246,201,14,0.28);
-      color: var(--gold);
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      padding: 5px 14px;
-      border-radius: 100px;
-      margin-bottom: 18px;
-    }
-    .header h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(2.1rem, 6vw, 3.1rem);
-      font-weight: 800;
-      line-height: 1.12;
-      background: linear-gradient(135deg, #fff 25%, var(--purple-light) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 12px;
-    }
-    .header p {
-      color: var(--text-muted);
-      font-size: 1.05rem;
-      font-weight: 300;
-    }
-
-    /* ── Card ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      box-shadow: var(--card-shadow);
-      transition: opacity 0.3s, filter 0.3s;
-    }
-    .card.dimmed {
-      opacity: 0.45;
-      pointer-events: none;
-      filter: blur(1px);
-    }
-
-    /* ── Field ── */
-    .field { margin-bottom: 26px; }
-    .field:last-of-type { margin-bottom: 0; }
-
-    label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    /* ── Time buttons ── */
-    .time-btns {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-    .time-btn {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      border-radius: 12px;
-      padding: 13px 6px 11px;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 600;
-      text-align: center;
-      transition: all 0.18s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-    }
-    .time-btn .icon { font-size: 1.5rem; line-height: 1; }
-    .time-btn:hover {
-      background: var(--surface-hover);
-      border-color: var(--border-hover);
-      color: var(--text);
-    }
-    .time-btn.active {
-      background: rgba(124,58,237,0.18);
-      border-color: var(--purple-light);
-      color: var(--text);
-      box-shadow: 0 0 14px var(--purple-glow);
-    }
-
-    /* ── Inputs ── */
-    input[type="text"], textarea {
-      width: 100%;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 0.95rem;
-      padding: 13px 16px;
-      transition: border-color 0.18s, box-shadow 0.18s;
-      resize: none;
-    }
-    input[type="text"]:focus, textarea:focus {
-      outline: none;
-      border-color: var(--purple-light);
-      box-shadow: 0 0 0 3px rgba(167,139,250,0.12);
-    }
-    ::placeholder { color: var(--text-muted); }
-    textarea { height: 88px; }
-
-    /* ── Generate Button ── */
-    .generate-btn {
-      width: 100%;
-      margin-top: 28px;
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
-      border: none;
-      border-radius: 14px;
-      color: #fff;
-      font-family: 'Syne', sans-serif;
-      font-size: 1.08rem;
-      font-weight: 700;
-      padding: 17px;
-      cursor: pointer;
-      letter-spacing: 0.02em;
-      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-    .generate-btn::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent 60%);
-      opacity: 0;
-      transition: opacity 0.18s;
-    }
-    .generate-btn:hover:not(:disabled)::after { opacity: 1; }
-    .generate-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 28px rgba(124,58,237,0.45);
-    }
-    .generate-btn:active:not(:disabled) { transform: translateY(0); }
-    .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* ── Loading ── */
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 56px 20px;
-    }
-    .loading.visible { display: block; }
-    .spinner {
-      display: inline-block;
-      font-size: 2.8rem;
-      animation: float 2.4s ease-in-out infinite;
-      margin-bottom: 16px;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(-5deg); }
-      50%       { transform: translateY(-10px) rotate(5deg); }
-    }
-    .loading p {
-      color: var(--text-muted);
-      font-size: 1rem;
-    }
-    .dots::after {
-      content: '';
-      animation: dots 1.6s steps(4, end) infinite;
-    }
-    @keyframes dots {
-      0%,20%   { content: ''; }
-      40%      { content: '.'; }
-      60%      { content: '..'; }
-      80%,100% { content: '...'; }
-    }
-
-    /* ── Error ── */
-    .error-card {
-      display: none;
-      margin-top: 18px;
-      background: rgba(239,68,68,0.07);
-      border: 1px solid rgba(239,68,68,0.22);
-      border-radius: 12px;
-      padding: 14px 18px;
-      color: #fca5a5;
-      font-size: 0.9rem;
+      background:
+        radial-gradient(circle at 85% -10%, var(--paper-2) 0%, transparent 55%),
+        radial-gradient(circle at -10% 100%, #ffd9c9 0%, transparent 45%),
+        var(--paper);
+      padding: 40px 20px 80px;
       line-height: 1.5;
     }
-    .error-card.visible { display: block; }
 
-    /* ── Results ── */
-    .results {
-      display: none;
-      margin-top: 32px;
-    }
-    .results.visible { display: block; }
+    .wrap { max-width: 640px; margin: 0 auto; }
 
-    .results-header {
-      text-align: center;
-      margin-bottom: 22px;
-    }
-    .results-header h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--gold);
-    }
-    .results-header p {
-      color: var(--text-muted);
-      font-size: 0.88rem;
-      margin-top: 4px;
-    }
-
-    /* ── Quest Cards ── */
-    .quest-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 26px;
-      margin-bottom: 14px;
-      opacity: 0;
-      animation: slideUp 0.42s ease forwards;
-    }
-    .quest-card:nth-child(2) { animation-delay: 0.1s; }
-    .quest-card:nth-child(3) { animation-delay: 0.2s; }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .quest-num {
-      font-size: 0.68rem;
+    /* Hero */
+    .hero { margin-bottom: 40px; }
+    .eyebrow {
+      font-size: 0.78rem;
       font-weight: 700;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 3px;
+      color: var(--accent);
+      margin-bottom: 14px;
     }
-    .quest-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.2rem;
-      font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 12px;
+    .hero h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 900;
+      font-size: clamp(2.4rem, 7vw, 3.6rem);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
     }
-    .type-badge {
-      display: inline-block;
-      background: rgba(124,58,237,0.14);
-      border: 1px solid rgba(167,139,250,0.28);
-      color: var(--purple-light);
-      font-size: 0.8rem;
-      font-weight: 500;
-      padding: 3px 11px;
-      border-radius: 100px;
+    .hero h1 em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--accent);
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 480px;
+    }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 26px; }
+
+    .step {
+      background: #fff;
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      padding: 22px 22px 24px;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .step:focus-within {
+      border-color: var(--ink);
+      box-shadow: 0 6px 24px rgba(26,23,18,0.08);
+    }
+
+    .step-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       margin-bottom: 16px;
     }
-    .quest-field {
-      margin-bottom: 13px;
-      font-size: 0.92rem;
-      line-height: 1.65;
+    .step-num {
+      flex: 0 0 auto;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: grid;
+      place-items: center;
     }
-    .quest-field:last-child { margin-bottom: 0; }
-    .field-lbl {
-      display: block;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 3px;
+    .step-label {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 1.18rem;
     }
-    .reward-box {
-      background: rgba(246,201,14,0.05);
-      border: 1px solid rgba(246,201,14,0.14);
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-top: 14px;
-    }
-    .reward-box .field-lbl { color: var(--gold); }
-    .reward-box p { color: rgba(238,238,255,0.82); font-size: 0.92rem; line-height: 1.65; }
 
-    /* ── Reset button ── */
-    .reset-btn {
-      display: block;
-      width: 100%;
-      margin-top: 20px;
+    /* Chip picker */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
       background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--text-muted);
-      font-family: 'Inter', sans-serif;
-      font-size: 0.88rem;
-      padding: 12px;
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 16px;
+      font: inherit;
+      font-size: 0.92rem;
+      color: var(--ink);
       cursor: pointer;
-      transition: border-color 0.18s, color 0.18s;
+      transition: all 0.15s;
     }
-    .reset-btn:hover {
-      border-color: var(--border-hover);
-      color: var(--text);
+    .chip:hover { border-color: var(--ink); }
+    .chip.on {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
     }
 
-    /* ── Fallback text display ── */
-    .raw-output {
+    /* Text inputs */
+    .field {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font: inherit;
+      font-size: 1rem;
+      color: var(--ink);
+      padding: 8px 2px;
+      border-bottom: 1.5px solid var(--line);
+      outline: none;
+      transition: border-color 0.15s;
+      resize: none;
+    }
+    .field:focus { border-color: var(--ink); }
+    .field::placeholder { color: var(--muted); }
+    textarea.field { min-height: 60px; line-height: 1.5; }
+
+    /* CTA */
+    .cta {
+      margin-top: 28px;
+      width: 100%;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      border-radius: 999px;
+      padding: 18px;
+      font: inherit;
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.15s;
+    }
+    .cta:hover:not(:disabled) { background: var(--accent); }
+    .cta:active:not(:disabled) { transform: scale(0.99); }
+    .cta:disabled { opacity: 0.4; cursor: wait; }
+
+    /* Status line */
+    .status {
+      margin-top: 14px;
+      min-height: 1.4em;
       font-size: 0.9rem;
-      line-height: 1.75;
-      color: var(--text-muted);
-      white-space: pre-wrap;
+      color: var(--muted);
+      text-align: center;
+    }
+    .status.err { color: var(--accent); }
+
+    /* Results */
+    .results { margin-top: 44px; display: none; }
+    .results.on { display: block; }
+
+    .results-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    .results-sub {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 22px;
     }
 
-    @media (max-width: 480px) {
-      .container { padding: 36px 16px 80px; }
-      .card { padding: 22px; }
-      .time-btns { grid-template-columns: repeat(2, 1fr); }
+    .idea {
+      border-top: 1.5px solid var(--line);
+      padding: 24px 0;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: rise 0.5s ease forwards;
+    }
+    .idea:nth-child(2) { animation-delay: 0.08s; }
+    .idea:nth-child(3) { animation-delay: 0.16s; }
+    .idea:nth-child(4) { animation-delay: 0.24s; }
+    .idea:last-child { border-bottom: 1.5px solid var(--line); }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+
+    .idea-head {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .idea-num {
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-size: 1.4rem;
+      color: var(--accent);
+    }
+    .idea-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 1.35rem;
+      line-height: 1.2;
+      flex: 1;
+    }
+    .idea-tag {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .idea-body { margin-bottom: 12px; }
+    .idea-where {
+      background: var(--paper-2);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 0.94rem;
+    }
+    .idea-where b {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .again {
+      margin-top: 28px;
+      width: 100%;
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 14px;
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .again:hover { background: var(--ink); color: var(--paper); }
+
+    /* Raw fallback */
+    .raw {
+      white-space: pre-wrap;
+      font-size: 0.94rem;
+      color: var(--ink);
+      padding: 18px 0;
     }
   </style>
 </head>
 <body>
-<div class="container">
+  <div class="wrap">
 
-  <!-- Header -->
-  <header class="header">
-    <div class="badge">✦ Adventure Awaits</div>
-    <h1>Side Quest Generator</h1>
-    <p>Not sure what to do? We'll find your next adventure.</p>
-  </header>
+    <header class="hero">
+      <div class="eyebrow">tell me three things</div>
+      <h1>So… <em>what should we do?</em></h1>
+      <p>Three questions. One AI. A shortlist of things to do near you, right now.</p>
+    </header>
 
-  <!-- Form -->
-  <div class="card" id="formCard">
+    <form class="steps" id="form" onsubmit="go(event)">
 
-    <div class="field">
-      <label>Time of Day</label>
-      <div class="time-btns">
-        <button class="time-btn" data-value="Morning" onclick="selectTime(this)">
-          <span class="icon">☀️</span>Morning
-        </button>
-        <button class="time-btn" data-value="Afternoon" onclick="selectTime(this)">
-          <span class="icon">🌤️</span>Afternoon
-        </button>
-        <button class="time-btn" data-value="Evening" onclick="selectTime(this)">
-          <span class="icon">🌆</span>Evening
-        </button>
-        <button class="time-btn" data-value="Night" onclick="selectTime(this)">
-          <span class="icon">🌙</span>Night
-        </button>
-      </div>
-    </div>
+      <section class="step">
+        <div class="step-head">
+          <span class="step-num">1</span>
+          <span class="step-label">When are we talking?</span>
+        </div>
+        <div class="chips" role="radiogroup" id="timeChips">
+          <button type="button" class="chip" data-v="Morning">Morning</button>
+          <button type="button" class="chip" data-v="Afternoon">Afternoon</button>
+          <button type="button" class="chip" data-v="Evening">Evening</button>
+          <button type="button" class="chip" data-v="Late night">Late night</button>
+        </div>
+      </section>
 
-    <div class="field">
-      <label>Why do you want to go out?</label>
-      <textarea id="reason" placeholder="e.g. We're super bored and need to do something fun, celebrating a birthday, need to get out of the house…"></textarea>
-    </div>
+      <section class="step">
+        <div class="step-head">
+          <span class="step-num">2</span>
+          <span class="step-label">Why are you looking?</span>
+        </div>
+        <textarea class="field" id="why" placeholder="Bored? Date? Visiting friends? Just need out of the house?"></textarea>
+      </section>
 
-    <div class="field">
-      <label>Your General Area</label>
-      <input type="text" id="location" placeholder="e.g. Downtown Austin TX, Brooklyn NY, Chicago suburbs…">
-    </div>
+      <section class="step">
+        <div class="step-head">
+          <span class="step-num">3</span>
+          <span class="step-label">Where are you?</span>
+        </div>
+        <input class="field" id="where" placeholder="Neighborhood, city, or zip — the more specific the better">
+      </section>
 
-    <button class="generate-btn" id="generateBtn" onclick="generateQuests()">
-      🎲 Find My Side Quests
-    </button>
+      <button class="cta" id="cta" type="submit">Find us something →</button>
+      <div class="status" id="status"></div>
+    </form>
+
+    <section class="results" id="results">
+      <h2 class="results-title">Here's what I'd try</h2>
+      <p class="results-sub" id="resultsSub"></p>
+      <div id="ideas"></div>
+      <button class="again" type="button" onclick="reset()">Start over</button>
+    </section>
+
   </div>
-
-  <!-- Error -->
-  <div class="error-card" id="errorCard"></div>
-
-  <!-- Loading -->
-  <div class="loading" id="loading">
-    <div class="spinner">🗺️</div>
-    <p>Summoning your quests<span class="dots"></span></p>
-  </div>
-
-  <!-- Results -->
-  <div class="results" id="results">
-    <div class="results-header">
-      <h2>⚔️ Your Side Quests</h2>
-      <p>Pick one and go. No more excuses.</p>
-    </div>
-    <div id="questCards"></div>
-    <button class="reset-btn" onclick="resetForm()">↩ Generate New Quests</button>
-  </div>
-
-</div>
 
 <script>
-  let selectedTime = '';
+  let time = '';
 
-  function selectTime(btn) {
-    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedTime = btn.dataset.value;
-  }
+  document.querySelectorAll('#timeChips .chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('#timeChips .chip').forEach(x => x.classList.remove('on'));
+      c.classList.add('on');
+      time = c.dataset.v;
+    });
+  });
 
-  async function generateQuests() {
-    const reason   = document.getElementById('reason').value.trim();
-    const location = document.getElementById('location').value.trim();
+  async function go(e) {
+    e.preventDefault();
+    const why   = document.getElementById('why').value.trim();
+    const where = document.getElementById('where').value.trim();
 
-    if (!selectedTime) { showValidationError('Please select a time of day!'); return; }
-    if (!reason)        { showValidationError('Please tell us why you want to go out!'); return; }
-    if (!location)      { showValidationError('Please enter your area!'); return; }
+    if (!time)  return setStatus('Pick a time of day.', true);
+    if (!why)   return setStatus('A quick "why" helps a lot.', true);
+    if (!where) return setStatus('Where are you roughly?', true);
 
-    setLoading(true);
+    setBusy(true);
+    setStatus('Thinking…');
 
-    let fullText = '';
+    let buf = '';
     try {
-      const response = await fetch('/api/recommend', {
+      const r = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timeOfDay: selectedTime, reason, location }),
+        body: JSON.stringify({ timeOfDay: time, reason: why, location: where }),
       });
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({ error: 'Server error' }));
-        throw new Error(err.error || `HTTP ${response.status}`);
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({ error: 'Server error' }));
+        throw new Error(j.error || `HTTP ${r.status}`);
       }
 
-      const reader  = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let carry = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop(); // keep partial line
-
+        carry += dec.decode(value, { stream: true });
+        const lines = carry.split('\n');
+        carry = lines.pop();
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
           const raw = line.slice(6).trim();
           if (raw === '[DONE]') break;
           try {
-            const parsed = JSON.parse(raw);
-            if (parsed.error) throw new Error(parsed.error);
-            if (parsed.text)  fullText += parsed.text;
-          } catch (e) {
-            if (e.message && e.message !== 'Unexpected end of JSON input') throw e;
+            const p = JSON.parse(raw);
+            if (p.error) throw new Error(p.error);
+            if (p.text) buf += p.text;
+          } catch (err) {
+            if (err.message && err.message !== 'Unexpected end of JSON input') throw err;
           }
         }
       }
 
-      setLoading(false);
-      renderQuests(fullText);
-
+      setBusy(false);
+      setStatus('');
+      render(buf, { time, why, where });
     } catch (err) {
-      setLoading(false);
-      showError('❌ ' + err.message + '\n\nMake sure the server is running and ANTHROPIC_API_KEY is set.');
+      setBusy(false);
+      setStatus(err.message + ' — check the server and ANTHROPIC_API_KEY.', true);
     }
   }
 
-  // ── Rendering ──────────────────────────────────────────────
+  function render(text, ctx) {
+    const ideas = document.getElementById('ideas');
+    ideas.innerHTML = '';
 
-  function renderQuests(text) {
-    const container = document.getElementById('questCards');
-    container.innerHTML = '';
+    const parts = text.split(/(?=###\s*Idea\s*\d+)/i).filter(p => /###\s*Idea/i.test(p));
 
-    // Split on quest headers
-    const blocks = text.split(/(?=##\s)/g).filter(b => b.trim().startsWith('##'));
-
-    if (blocks.length === 0) {
-      // Fallback: show raw text in a card
-      container.innerHTML =
-        `<div class="quest-card" style="opacity:1"><pre class="raw-output">${escHtml(text)}</pre></div>`;
+    if (!parts.length) {
+      ideas.innerHTML = `<div class="raw">${esc(text)}</div>`;
     } else {
-      blocks.forEach((block, i) => container.appendChild(buildQuestCard(block, i + 1)));
+      parts.forEach((p, i) => ideas.appendChild(buildIdea(p, i + 1)));
     }
 
-    document.getElementById('results').classList.add('visible');
+    document.getElementById('resultsSub').textContent =
+      `For ${ctx.time.toLowerCase()} in ${ctx.where}.`;
+    document.getElementById('results').classList.add('on');
     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function buildQuestCard(text, n) {
-    const card = document.createElement('div');
-    card.className = 'quest-card';
+  function buildIdea(block, n) {
+    const titleM = block.match(/###\s*Idea\s*\d+\s*[:\-–—]\s*(.+)/i);
+    const vibeM  = block.match(/\*\*Vibe:\*\*\s*(.+)/i);
+    const whatM  = block.match(/\*\*What:\*\*\s*([\s\S]+?)(?=\n\*\*|$)/i);
+    const whereM = block.match(/\*\*Where to look:\*\*\s*([\s\S]+?)(?=\n\*\*|$)/i);
 
-    // Title from ## header
-    const titleM  = text.match(/##\s+.*?Quest\s+\d+:\s+(.+)/i);
-    const title    = titleM ? titleM[1].trim() : `Quest ${n}`;
+    const title = titleM ? titleM[1].trim() : `Idea ${n}`;
+    const vibe  = vibeM  ? vibeM[1].trim()  : '';
+    const what  = whatM  ? whatM[1].trim()  : block.replace(/###.*\n/, '').trim();
+    const wherе = whereM ? whereM[1].trim() : '';
 
-    // Fields
-    const typeM    = text.match(/\*\*Type:\*\*\s*(.+)/);
-    const missionM = text.match(/\*\*The Mission:\*\*\s*([\s\S]+?)(?=\n\*\*|\n---|$)/);
-    const whereM   = text.match(/\*\*Where to Go:\*\*\s*([\s\S]+?)(?=\n\*\*|\n---|$)/);
-    const rewardM  = text.match(/\*\*Quest Reward:\*\*\s*([\s\S]+?)(?=\n\*\*|\n---|$)/);
-
-    const type    = typeM    ? typeM[1].trim()    : '';
-    const mission = missionM ? missionM[1].trim() : '';
-    const where   = whereM   ? whereM[1].trim()   : '';
-    const reward  = rewardM  ? rewardM[1].trim()  : '';
-
-    card.innerHTML = `
-      <div class="quest-num">Quest ${n}</div>
-      <div class="quest-title">${escHtml(title)}</div>
-      ${type    ? `<div class="type-badge">${escHtml(type)}</div>` : ''}
-      ${mission ? `<div class="quest-field"><span class="field-lbl">The Mission</span>${escHtml(mission)}</div>` : ''}
-      ${where   ? `<div class="quest-field"><span class="field-lbl">Where to Go</span>${escHtml(where)}</div>` : ''}
-      ${reward  ? `<div class="reward-box"><span class="field-lbl">Quest Reward</span><p>${escHtml(reward)}</p></div>` : ''}
+    const el = document.createElement('article');
+    el.className = 'idea';
+    el.innerHTML = `
+      <div class="idea-head">
+        <span class="idea-num">${n < 10 ? '0' + n : n}</span>
+        <h3 class="idea-title">${esc(title)}</h3>
+      </div>
+      ${vibe ? `<span class="idea-tag">${esc(vibe)}</span>` : ''}
+      <p class="idea-body">${esc(what)}</p>
+      ${wherе ? `<div class="idea-where"><b>Where to look</b>${esc(wherе)}</div>` : ''}
     `;
-    return card;
+    return el;
   }
 
-  // ── Helpers ────────────────────────────────────────────────
-
-  function setLoading(on) {
-    document.getElementById('generateBtn').disabled = on;
-    document.getElementById('formCard').classList.toggle('dimmed', on);
-    document.getElementById('loading').classList.toggle('visible', on);
-    document.getElementById('results').classList.remove('visible');
-    document.getElementById('errorCard').classList.remove('visible');
+  function setBusy(b) {
+    document.getElementById('cta').disabled = b;
+    document.getElementById('cta').textContent = b ? 'Thinking…' : 'Find us something →';
   }
-
-  function showError(msg) {
-    const el = document.getElementById('errorCard');
-    el.textContent = msg;
-    el.classList.add('visible');
-    document.getElementById('formCard').classList.remove('dimmed');
-    document.getElementById('generateBtn').disabled = false;
+  function setStatus(msg, err) {
+    const s = document.getElementById('status');
+    s.textContent = msg;
+    s.classList.toggle('err', !!err);
   }
-
-  function showValidationError(msg) {
-    showError(msg);
-    document.getElementById('formCard').classList.remove('dimmed');
-  }
-
-  function resetForm() {
-    document.getElementById('results').classList.remove('visible');
+  function reset() {
+    document.getElementById('results').classList.remove('on');
+    document.getElementById('ideas').innerHTML = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-
-  function escHtml(str) {
-    return str
-      .replace(/&/g,  '&amp;')
-      .replace(/</g,  '&lt;')
-      .replace(/>/g,  '&gt;')
-      .replace(/\n/g, '<br>');
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
   }
 </script>
 </body>
