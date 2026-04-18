@@ -10,8 +10,8 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const client = new Anthropic({ apiKey: 'YOUR_KEY_HERE' });
-}
+const apiKey = process.env.ANTHROPIC_API_KEY;
+const client = apiKey ? new Anthropic({ apiKey }) : null;
 
 // ============================================================
 // CUSTOMIZE YOUR QUEST CATEGORIES HERE
@@ -86,7 +86,7 @@ Activity ideas to draw inspiration from:
 Give us 3 perfect side quests!`;
 
     const stream = client.messages.stream({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-opus-4-7',
       max_tokens: 1600,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
